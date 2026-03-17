@@ -23,6 +23,7 @@ print(rattler_build_version())
 - **[Rendering](rendering.md)** - Render recipes with variants (`RenderedVariant`, `VariantConfig`)
 - **[Package](package.md)** - Inspect packages and run tests (`Package`, `PackageTest`)
 - **[Build Result](build_result.md)** - Build output information (`BuildResult`)
+- **[Debug Session](debug.md)** - Interactive recipe debugging (`DebugSession`, `DebugRunResult`)
 
 ## Configuration
 

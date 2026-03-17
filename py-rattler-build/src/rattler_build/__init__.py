@@ -14,6 +14,7 @@ from rattler_build._rattler_build import (
     get_rattler_build_version_py,
 )
 from rattler_build.build_result import BuildResult
+from rattler_build.debug import DebugRunResult, DebugSession
 from rattler_build.cli_api import (
     build_recipes,
     test_package,
@@ -83,6 +84,9 @@ __all__ = [
     "generate_cran_recipe",
     "generate_cpan_recipe",
     "generate_luarocks_recipe",
+    # Debug
+    "DebugSession",
+    "DebugRunResult",
     # Configuration
     "BuildResult",
     "JinjaConfig",

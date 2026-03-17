@@ -157,6 +157,7 @@ nav:
           - py-rattler-build/reference/configuration.md
           - py-rattler-build/reference/package.md
           - py-rattler-build/reference/build_result.md
+          - py-rattler-build/reference/debug.md
           - py-rattler-build/reference/upload.md
           - py-rattler-build/reference/exceptions.md
           - py-rattler-build/reference/recipe_generation.md
@@ -167,6 +168,7 @@ nav:
           - py-rattler-build/tutorials/multi_output_and_staging.md
           - py-rattler-build/tutorials/inspecting_built_packages.md
           - py-rattler-build/tutorials/package_assembly.md
+          - py-rattler-build/tutorials/debug_session.md
 
   - References:
       - Recipe file: reference/recipe_file.md
