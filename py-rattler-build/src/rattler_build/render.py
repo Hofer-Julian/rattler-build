@@ -329,6 +329,7 @@ class RenderedVariant:
         package_format: str | None = None,
         no_include_recipe: bool = False,
         exclude_newer: datetime | None = None,
+        sibling_variants: list[RenderedVariant] | None = None,
     ) -> BuildResult:
         """Build this rendered variant.
 
@@ -346,6 +347,10 @@ class RenderedVariant:
             package_format: Package format ("conda" or "tar.bz2").
             no_include_recipe: Don't include recipe in the output package.
             exclude_newer: Exclude packages newer than this timestamp.
+            sibling_variants: Other rendered variants from the same multi-output recipe.
+                These are used to resolve ``pin_subpackage`` dependencies between outputs.
+                When building multi-output recipes, pass all rendered variants here so that
+                cross-output pins can be resolved correctly.
 
         Returns:
             BuildResult: Information about the built package including paths, metadata, and timing.
@@ -359,6 +364,10 @@ class RenderedVariant:
             # Build just the first variant (output goes to <recipe_dir>/output)
             result = rendered[0].run_build()
             print(f"Built package: {result.packages[0]}")
+
+            # For multi-output recipes, pass sibling variants for pin_subpackage support
+            for variant in rendered:
+                variant.run_build(sibling_variants=rendered)
             ```
         """
         # Use default ToolConfiguration if not provided
@@ -370,6 +379,8 @@ class RenderedVariant:
             output_dir = self._recipe_path.parent / "output"
         output_dir = Path(output_dir)
         output_dir.mkdir(parents=True, exist_ok=True)
+
+        rust_siblings = [v._inner for v in sibling_variants] if sibling_variants else []
 
         # Build this single variant
         rust_result = build_rendered_variant_py(
@@ -383,6 +394,7 @@ class RenderedVariant:
             package_format=package_format,
             no_include_recipe=no_include_recipe,
             exclude_newer=exclude_newer,
+            sibling_variants=rust_siblings,
         )
 
         # Convert Rust BuildResult to Python BuildResult
@@ -461,6 +473,7 @@ def build_rendered_variants(
             package_format=package_format,
             no_include_recipe=no_include_recipe,
             exclude_newer=exclude_newer,
+            sibling_variants=rendered_variants,
         )
         results.append(result)
 

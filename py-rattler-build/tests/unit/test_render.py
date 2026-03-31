@@ -14,6 +14,7 @@ from rattler_build import (
     RenderedVariant,
     Stage0Recipe,
     VariantConfig,
+    BuildError,
 )
 
 
@@ -277,3 +278,59 @@ build:
 
     result = rendered[0].run_build(output_dir=tmp_path, exclude_newer=exclude_newer)
     assert result.name == "datetime-test"
+
+
+def test_run_build_multi_output_pin_subpackage(tmp_path: Path) -> None:
+    """Test that multi-output recipes with pin_subpackage build correctly.
+
+    Reproducer for https://github.com/prefix-dev/rattler-build/issues/2374:
+    When building multi-output recipes via py-rattler-build, the second output
+    fails with "Could not apply pin_subpackage. The following subpackage is not
+    available" because sibling output information was not passed through.
+    """
+
+    recipe_yaml = """
+schema_version: 1
+
+recipe:
+  version: "0.1.0"
+
+build:
+  number: 0
+
+outputs:
+  - package:
+      name: my-pkg-base
+    build:
+      noarch: generic
+
+  - package:
+      name: my-pkg
+    build:
+      noarch: generic
+    requirements:
+      run:
+        - ${{ pin_subpackage("my-pkg-base", exact=true) }}
+"""
+
+    recipe = Stage0Recipe.from_yaml(recipe_yaml)
+    variant_config = VariantConfig()
+    rendered = recipe.render(variant_config)
+
+    assert len(rendered) == 2
+
+    # The second output uses pin_subpackage referencing the first output.
+    # Without sibling_variants, this should fail.
+    second_output = rendered[1]
+    assert second_output.recipe.package.name == "my-pkg"
+
+    with pytest.raises(BuildError, match="subpackage is not available"):
+        second_output.run_build(output_dir=tmp_path)
+
+    # With sibling_variants passed, all outputs should build successfully.
+    for variant in rendered:
+        result = variant.run_build(
+            output_dir=tmp_path,
+            sibling_variants=rendered,
+        )
+        assert result.name in ("my-pkg-base", "my-pkg")
